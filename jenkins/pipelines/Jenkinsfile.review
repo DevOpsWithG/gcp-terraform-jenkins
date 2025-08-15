@@ -1,0 +1,45 @@
+pipeline {
+  agent any
+  environment {
+    PROJECT_ID = "${params.PROJECT_ID ?: 'YOUR_DEV_PROJECT_ID'}"
+    IMAGE      = "${params.IMAGE ?: 'gcr.io/${PROJECT_ID}/sample-node-app'}"
+    BRANCH     = "${env.BRANCH_NAME}"
+  }
+  options { timestamps() }
+  triggers { pollSCM('* * * * *') }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+    stage('Build') {
+      steps {
+        sh 'docker build -t ${IMAGE}:${BRANCH}-${BUILD_NUMBER} apps/sample-node-app'
+      }
+    }
+    stage('Scan Image') {
+      steps {
+        sh 'trivy image --exit-code 0 ${IMAGE}:${BRANCH}-${BUILD_NUMBER} || true'
+      }
+    }
+    stage('Unit Tests') {
+      steps {
+        dir('apps/sample-node-app'){ sh 'npm test' }
+      }
+    }
+    stage('Push') {
+      steps {
+        withCredentials([file(credentialsId: 'gcp-sa', variable: 'GCLOUD_AUTH')]) {
+          sh '''
+            gcloud auth activate-service-account --key-file=$GCLOUD_AUTH
+            gcloud auth configure-docker -q
+            docker push ${IMAGE}:${BRANCH}-${BUILD_NUMBER}
+          '''
+        }
+      }
+    }
+  }
+  post {
+    success { echo 'Review pipeline passed. OK to merge.' }
+    always  { cleanWs() }
+  }
+}

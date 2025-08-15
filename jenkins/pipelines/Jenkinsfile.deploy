@@ -1,0 +1,47 @@
+pipeline {
+  agent any
+  parameters {
+    string(name: 'ENV', defaultValue: 'dev', description: 'dev or prod')
+    string(name: 'PROJECT_ID', defaultValue: 'YOUR_DEV_PROJECT_ID', description: 'GCP project')
+    string(name: 'IMAGE', defaultValue: 'gcr.io/YOUR_DEV_PROJECT_ID/sample-node-app', description: 'Container image')
+    string(name: 'TAG', defaultValue: 'dev', description: 'Image tag to deploy')
+  }
+  environment {
+    KUSTOMIZE_OVERLAY = "apps/sample-node-app/k8s/overlays/${params.ENV}"
+  }
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Auth GCP') {
+      steps {
+        withCredentials([file(credentialsId: 'gcp-sa', variable: 'GCLOUD_AUTH')]) {
+          sh '''
+            gcloud auth activate-service-account --key-file=$GCLOUD_AUTH
+            gcloud config set project ${params.PROJECT_ID}
+          '''
+        }
+      }
+    }
+    stage('Get Kubeconfig') {
+      steps {
+        sh '''
+          gcloud container clusters get-credentials gke-${params.ENV} --zone asia-south1-a --project ${params.PROJECT_ID}
+        '''
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh '''
+          IMAGE_NAME=${params.IMAGE}
+          TAG=${params.TAG}
+          sed -i "s#REPLACEME_REGISTRY/sample-node-app#${IMAGE_NAME}#g" apps/sample-node-app/k8s/base/deployment.yaml
+          kubectl apply -k ${KUSTOMIZE_OVERLAY}
+          kubectl rollout status deploy/sample-node-app -n ${params.ENV} --timeout=120s
+        '''
+      }
+    }
+  }
+  post {
+    success { echo "Deployed ${params.IMAGE}:${params.TAG} to ${params.ENV}" }
+    always  { cleanWs() }
+  }
+}

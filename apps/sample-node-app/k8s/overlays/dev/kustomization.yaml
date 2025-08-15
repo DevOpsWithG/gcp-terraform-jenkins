@@ -1,0 +1,6 @@
+namespace: dev
+images:
+- name: REPLACEME_REGISTRY/sample-node-app
+  newTag: dev
+resources:
+- ../../base

@@ -1,0 +1,6 @@
+project_id   = "YOUR_PROD_PROJECT_ID"
+region       = "asia-south1"
+location     = "asia-south1-b"
+vpc_name     = "prod"
+vpc_cidr     = "10.30.0.0/16"
+cluster_name = "gke-prod"

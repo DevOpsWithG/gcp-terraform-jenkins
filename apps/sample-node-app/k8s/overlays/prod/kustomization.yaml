@@ -1,0 +1,6 @@
+namespace: prod
+images:
+- name: REPLACEME_REGISTRY/sample-node-app
+  newTag: prod
+resources:
+- ../../base
