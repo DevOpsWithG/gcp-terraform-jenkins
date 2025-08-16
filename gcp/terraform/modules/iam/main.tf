@@ -13,7 +13,10 @@ resource "google_project_iam_member" "roles" {
 output "email" { value = google_service_account.automation.email }
 
 variable "project_id" { type = string }
-variable "account_id" { type = string default = "cicd-automation" }
+variable "account_id" {
+  type = string
+  default = "cicd-automation"
+}
 variable "roles" {
   type = list(string)
   default = [
