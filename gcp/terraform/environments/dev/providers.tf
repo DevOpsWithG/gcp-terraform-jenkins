@@ -1,9 +1,8 @@
 terraform {
-  required_version = ">= 1.6.0"
   required_providers {
     google = {
-      source  = "hashicorp/google"
-      version = ">= 5.0"
+      source = "hashicorp/google"
+      version = "6.48.0"
     }
   }
 }
@@ -11,7 +10,7 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
-  #  credentials = file(var.credentials_file)
+  credentials = file(var.credentails_file)
 }
 
 #variable "project_id" { type = string }

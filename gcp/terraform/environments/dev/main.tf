@@ -20,7 +20,7 @@ module "iam" {
 module "gke" {
   source     = "../../modules/gke-autopilot"
   project_id = var.project_id
-  #  credentials = file(var.credentials_file)
+##  credentials = file(var.credentials_file)
   name       = var.cluster_name
   location   = var.location
   network    = module.vpc.network_self_link

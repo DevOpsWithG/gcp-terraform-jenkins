@@ -1,7 +1,8 @@
 resource "google_container_cluster" "gke" {
   name     = var.name
   location = var.location            # Autopilot clusters are REGIONAL (e.g., asia-south1)
-
+  deletion_protection = false
+  enable_autopilot = true
   network    = var.network
   subnetwork = var.subnetwork
 
@@ -15,11 +16,6 @@ resource "google_container_cluster" "gke" {
 
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
-  }
-
-  # Turn on Autopilot
-  autopilot {
-    enabled = true
   }
 
   # Logging/Monitoring defaults are fine; you can reduce costs later

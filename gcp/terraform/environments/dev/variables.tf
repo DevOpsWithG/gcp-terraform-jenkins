@@ -1,5 +1,5 @@
 variable "project_id" { type = string }
-#variable "credentails_file" { type = string }
+variable "credentails_file" { type = string }
 variable "region" {
   type    = string
   default = "us-central1"
